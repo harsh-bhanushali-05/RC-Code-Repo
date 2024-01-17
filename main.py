@@ -91,7 +91,22 @@ def get_kurtosis():
     return kurtosis
 
 def get_moving_kurtosis(tau):
-    return list
+    moving_mean= get_moving_mean(tau)
+    moving_std = get_moving_standard_deviation(tau)
+    open = df['Open']
+    n=tau
+    constant1 = n * (n + 1) / ((n - 1) * (n - 2) * (n - 3))
+    constant2 = 3 * (n - 1) ** 2 / ((n - 2) * (n - 3))
+    kurtosis= []
+    for i in range(open.size-tau):
+        sum = 0
+        for j in range( tau ):
+            sum+= (((open[i+j]-moving_mean[i]) / moving_std[i])**4 )
+        sum *=constant1
+        sum -= constant2
+        kurtosis.append(sum)
+    return  kurtosis
+
 
 def get_entropy():
     mean = get_mean()
@@ -99,15 +114,19 @@ def get_entropy():
     entropy = 0.5 * math.log(2 * math.pi * math.e * std**2)
     return entropy
 
-def get_moving_entorpy(tau):
-    return list
+def get_moving_entropy(tau):
+    std = get_moving_standard_deviation(tau)
+    ans = []
+    for i in std:
+       entropy = 0.5 * math.log(2 * math.pi * math.e * i ** 2)
+       ans.append(entropy)
+    return ans
 
 
 def get_kutosis_with_library():
     data = df['Open']
     kurtosis_value = kurtosis(data, fisher=True)
     print("Population Kurtosis:", kurtosis_value)
-
 
 
 def plot_data():
@@ -149,7 +168,19 @@ def plot_moving_standard_deviation(tau):
     plt.title(f'Moving standard deviation with Tau={tau}')
     plt.show()
 
-
+def plot_moving_kurtosis(tau):
+    list= get_moving_kurtosis(tau)
+    date = df['Date'][:len(list)]
+    plt.plot(date, list)
+    plt.xlabel('Date')
+    plt.ylabel(f'Moving kurtosis (Tau={tau})')
+    plt.title(f'Moving kurtosis with Tau={tau}')
+    plt.show()
+def plot_moving_kurtosis_usingLibary(tau):
+    data = df['Open']
+    moving_kurtosis = data.rolling(window=5).kurt()
+    print(moving_kurtosis)
+    return moving_kurtosis
 
 
 if __name__ == '__main__':
@@ -164,4 +195,7 @@ if __name__ == '__main__':
     # plot_moving_standard_diviation(5)
     # print(get_kurtosis())
     # get_kutosis_with_library()
-    print(get_entropy())
+    # print(get_moving_kurtosis(5))
+    # print(plot_moving_kurtosis(5))
+    print(plot_moving_kurtosis(5))
+    plot_moving_kurtosis_usingLibary(5)
