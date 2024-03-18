@@ -17,7 +17,7 @@ def get_mean():
     return mean
 
 
-def get_moving_mean(tau): # can be improved by sliding window
+def get_moving_mean(tau):
     open = df['Open']
     l=[]
     for i in range(open.size - tau):
@@ -39,7 +39,7 @@ def get_variance():
 
 def get_moving_variance(tau):
     open = df['Open']
-    l = get_moving_mean(tau) # this is the list which stores the moving mean
+    l = get_moving_mean(tau)
     var_list = []
     for i in range(open.size - tau):
         var = 0
@@ -73,11 +73,21 @@ def get_skewness():
     return sig*mul
 
 
+
 def get_moving_skewness(tau):
-    mean = get_moving_mean(tau)
-    std = get_moving_standard_deviation(tau)
-    open =df['Open']
-    print(" do it ")
+    open_prices = df['Open']
+    skewness_list = []
+    for i in range(len(open_prices) - tau + 1):
+        window = open_prices[i : i + tau]
+        mean = sum(window) / tau
+        m3 = sum((x - mean) ** 3 for x in window) / tau
+        m2 = sum((x - mean) ** 2 for x in window) / tau
+        if m2 != 0:
+            skewness = m3 / (m2 ** 1.5)
+        else:
+            skewness = 0
+        skewness_list.append(skewness)
+    return skewness_list
 
 
 def get_kurtosis():
@@ -127,6 +137,16 @@ def get_kutosis_with_library():
     data = df['Open']
     kurtosis_value = kurtosis(data, fisher=True)
     print("Population Kurtosis:", kurtosis_value)
+
+def plot_moving_skewness(tau):
+    skewness_list = get_moving_skewness( tau)
+    date = df['Date'][:len(skewness_list)]
+    plt.bar(date, skewness_list)
+    plt.xlabel('Date')
+    plt.ylabel(f'Moving Skewness (Tau={tau})')
+    plt.title(f'Moving Skewness with Tau={tau}')
+    plt.xticks(rotation=45)  # Optional: Rotate the x-axis labels for better readability
+    plt.show()
 
 
 def plot_data():
@@ -197,5 +217,6 @@ if __name__ == '__main__':
     # get_kutosis_with_library()
     # print(get_moving_kurtosis(5))
     # print(plot_moving_kurtosis(5))
-    print(plot_moving_kurtosis(5))
-    plot_moving_kurtosis_usingLibary(5)
+    # print(plot_moving_kurtosis(5))
+    # plot_moving_kurtosis_usingLibary(5)
+    print(plot_moving_kurtosis(500))
